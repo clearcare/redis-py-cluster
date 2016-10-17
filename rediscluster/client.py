@@ -297,6 +297,7 @@ class StrictRedisCluster(StrictRedis):
                     # MOVED
                     node = self.connection_pool.get_master_node_by_slot(slot)
                 else:
+                    # Common case
                     node = self.connection_pool.get_node_by_slot(slot)
                 r = self.connection_pool.get_connection_by_node(node)
 
