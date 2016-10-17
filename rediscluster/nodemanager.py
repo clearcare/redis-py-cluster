@@ -34,27 +34,26 @@ class NodeManager(object):
         # Minor performance tweak to avoid having to check inside the method
         # for each call to keyslot method.
         if sys.version_info[0] < 3:
-            self.keyslot = self.keyslot_py_2
+            self.hashtag = self.hashtag_py_2
         else:
-            self.keyslot = self.keyslot_py_3
+            self.hashtag = self.hashtag_py_3
 
-    def keyslot_py_2(self, key):
+    @classmethod
+    def hashtag_py_2(cls, key):
         """
         Calculate keyslot for a given key.
         Tuned for compatibility with python 2.7.x
         """
         k = unicode(key)
-
         start = k.find("{")
-
         if start > -1:
             end = k.find("}", start + 1)
             if end > -1 and end != start + 1:
                 k = k[start + 1:end]
+        return k
 
-        return crc16(k) % self.RedisClusterHashSlots
-
-    def keyslot_py_3(self, key):
+    @classmethod
+    def hashtag_py_3(cls, key):
         """
         Calculate keyslot for a given key.
         Tuned for compatibility with supported python 3.x versions
@@ -72,8 +71,10 @@ class NodeManager(object):
             end = k.find("}", start + 1)
             if end > -1 and end != start + 1:
                 k = k[start + 1:end]
+        return k
 
-        return crc16(k) % self.RedisClusterHashSlots
+    def keyslot(self, key):
+        return crc16(self.hashtag(key)) % self.RedisClusterHashSlots
 
     def node_from_slot(self, slot):
         """
