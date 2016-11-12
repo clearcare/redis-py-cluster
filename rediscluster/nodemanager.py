@@ -19,7 +19,7 @@ class NodeManager(object):
     """
     RedisClusterHashSlots = 16384
 
-    def __init__(self, startup_nodes=None, **connection_kwargs):
+    def __init__(self, startup_nodes=None, need_full_slots_coverage=None, **connection_kwargs):
         """
         """
         self.connection_kwargs = connection_kwargs
@@ -27,6 +27,7 @@ class NodeManager(object):
         self.slots = {}
         self.startup_nodes = [] if startup_nodes is None else startup_nodes
         self.orig_startup_nodes = [node for node in self.startup_nodes]
+        self.need_full_slots_coverage = need_full_slots_coverage
 
         if not self.startup_nodes:
             raise RedisClusterException("No startup nodes provided")
@@ -217,7 +218,10 @@ class NodeManager(object):
                 self.populate_startup_nodes()
                 self.refresh_table_asap = False
 
-            need_full_slots_coverage = self.cluster_require_full_coverage(nodes_cache)
+            if self.need_full_slots_coverage is None:
+                need_full_slots_coverage = self.cluster_require_full_coverage(nodes_cache)
+            else:
+                need_full_slots_coverage = self.need_full_slots_coverage
 
             # Validate if all slots are covered or if we should try next startup node
             for i in range(0, self.RedisClusterHashSlots):
